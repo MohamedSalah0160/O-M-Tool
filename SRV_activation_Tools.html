@@ -1,0 +1,1778 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Tools Suite</title>
+
+    <!-- External Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- Common Styles -->
+    <style>
+        body {
+            font-family: 'Inter', 'Roboto', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .tab {
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px 8px 0 0;
+            backdrop-filter: blur(5px);
+        }
+
+        .tab button {
+            background: transparent;
+            float: left;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 20px;
+            color: #e0e0e0;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tab button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .tab button.active {
+            background: linear-gradient(135deg, #7c4dff, #b388ff);
+            color: white;
+        }
+
+        .tabcontent {
+            display: none;
+            padding: 20px;
+            background: rgba(34, 40, 66, 0.95);
+            border-radius: 0 0 8px 8px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Common Container Styles */
+        .excel-container, .mml-container, .cmd-container {
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        h1, h2 {
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #7c4dff;
+            text-shadow: 0 2px 8px rgba(124, 77, 255, 0.3);
+        }
+
+        button {
+            background: linear-gradient(135deg, #7c4dff, #b388ff);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(124, 77, 255, 0.5);
+        }
+
+        textarea, input, select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e0e0e0;
+            font-size: 14px;
+        }
+
+        textarea:focus, input:focus, select:focus {
+            border-color: #7c4dff;
+            outline: none;
+        }
+
+        /* Copyright Footer */
+        .copyright {
+            position: fixed;
+            bottom: 10px;
+            width: 100%;
+            text-align: center;
+            color: #e0e0e0;
+            font-size: 14px;
+            padding: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+        }
+    </style>
+
+    <!-- Tool-Specific Styles -->
+    <style>
+        /* Excel Processor Styles */
+        .excel-container .file-input-container {
+            margin: 30px 0;
+            position: relative;
+        }
+        .excel-container .custom-file-input {
+            display: none;
+        }
+        .excel-container .file-input-label {
+            background: linear-gradient(135deg, #7c4dff 0%, #b388ff 100%);
+            color: white;
+            padding: 15px 35px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2em;
+            box-shadow: 0 6px 20px rgba(124, 77, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        .excel-container .file-input-label:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(124, 77, 255, 0.5);
+        }
+        .excel-container .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 30px;
+        }
+        .excel-container button:disabled {
+            background: #4a4a68;
+            cursor: not-allowed;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+        .excel-container #excel_loading {
+            text-align: center;
+            color: #b388ff;
+            font-size: 1.3em;
+            margin: 25px 0;
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        .excel-container .statistics-container {
+            margin-top: 40px;
+            animation: slideIn 0.5s ease;
+            text-align: left;
+            background: rgba(40, 46, 74, 0.7);
+            padding: 20px;
+            border-radius: 15px;
+        }
+        .excel-container .filter-container, .excel-container .workers-container {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        .excel-container .filter-label {
+            font-weight: 500;
+            color: #d1c4e9;
+        }
+        .excel-container .filter-select, .excel-container .worker-input {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: #282e4a;
+            color: white;
+            font-size: 1em;
+            transition: all 0.3s ease;
+        }
+        .excel-container .filter-select:hover, .excel-container .worker-input:hover {
+            border-color: #7c4dff;
+        }
+        .excel-container .workers-list {
+            margin-top: 15px;
+            max-height: 120px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+        .excel-container .worker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #3a4066;
+            margin: 8px 0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .excel-container .worker-item:hover {
+            background: #4a5080;
+        }
+        .excel-container .remove-worker {
+            background: #ff6b6b;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .excel-container .remove-worker:hover {
+            background: #ff8787;
+        }
+        .excel-container .statistics-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .excel-container .statistics-table th, .excel-container .statistics-table td {
+            padding: 15px;
+            text-align: left;
+            background: #3a4066;
+        }
+        .excel-container .statistics-table th {
+            background: linear-gradient(135deg, #7c4dff 0%, #b388ff 100%);
+            color: white;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .excel-container .statistics-table tr {
+            transition: all 0.3s ease;
+        }
+        .excel-container .statistics-table tr:hover td {
+            background: #4a5080;
+        }
+        .excel-container .error-count {
+            font-weight: 600;
+            color: #b388ff;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .excel-container .download-section {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .excel-container .error-rows {
+            margin-top: 25px;
+            max-height: 450px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            background: rgba(40, 46, 74, 0.7);
+        }
+        .excel-container .error-row {
+            background: #3a4066;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+        .excel-container .error-row:hover {
+            transform: translateY(-2px);
+            background: #4a5080;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .excel-container .error-details {
+            display: none;
+            margin-top: 15px;
+            padding: 12px;
+            background: #2e3456;
+            border-radius: 8px;
+            font-size: 0.95em;
+        }
+        .excel-container .worker-assignment {
+            color: #b388ff;
+            font-weight: 600;
+        }
+
+        /* MML Log Analyzer Styles */
+        .mml-container .input-section {
+            margin-bottom: 20px;
+        }
+        .mml-container textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            resize: vertical;
+        }
+        .mml-container .tab {
+            position: sticky;
+            top: 0;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px 4px 0 0;
+            z-index: 1000;
+            display: flex;
+            overflow-x: auto;
+        }
+        .mml-container .tab button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            outline: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            transition: 0.3s;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .mml-container .tab button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .mml-container .tab button.active {
+            background: linear-gradient(135deg, #7c4dff, #b388ff);
+            color: white;
+        }
+        .mml-container .tabcontent {
+            display: none;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-top: none;
+            background: rgba(40, 46, 74, 0.7);
+            border-radius: 0 0 4px 4px;
+            animation: fadeIn 0.3s;
+        }
+        .mml-container .tabcontent.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .mml-container details {
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            transition: background 0.3s ease;
+        }
+        .mml-container details[open] {
+            background: rgba(124, 77, 255, 0.1);
+        }
+        .mml-container summary {
+            cursor: pointer;
+            font-weight: 500;
+            padding: 5px;
+            color: #b388ff;
+        }
+        .mml-container pre {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin: 5px 0;
+            font-size: 13px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .mml-container .param-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        .mml-container .param-table th, .mml-container .param-table td {
+            padding: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: left;
+        }
+        .mml-container .param-table th {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+        .mml-container .param-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .mml-container .param-table tr:hover {
+            background: rgba(124, 77, 255, 0.1);
+        }
+        .mml-container .error-list div {
+            color: #ff6b6b;
+            font-weight: bold;
+        }
+        .mml-container .copy-btn {
+            float: right;
+            background: linear-gradient(135deg, #7c4dff, #b388ff);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .mml-container .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(124, 77, 255, 0.5);
+        }
+        .mml-container .search-bar {
+            margin-bottom: 10px;
+            padding: 8px;
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+        .mml-container .search-bar:focus {
+            border-color: #7c4dff;
+        }
+        .mml-container .param-key {
+            font-weight: 500;
+            margin-right: 5px;
+        }
+        .mml-container .flow-explanation {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+
+        /* Command Generator Styles */
+        .cmd-container .search-hint {
+            color: #b388ff;
+            font-size: 1.3rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+        .cmd-container .select2-container--default .select2-selection--single {
+            background: rgba(255, 255, 255, 0.05);
+            height: 50px;
+            display: flex;
+            align-items: center;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+        .cmd-container .select2-container--default .select2-selection--single:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+        .cmd-container .select2-container--default .select2-results__option {
+            background: white;
+            color: #333;
+            font-weight: bold;
+            padding: 10px;
+        }
+        .cmd-container .select2-container--default .select2-results__option--highlighted {
+            background: #7c4dff !important;
+            color: white !important;
+        }
+        .cmd-container .select2-container--default .select2-dropdown {
+            background: white;
+            border: 1px solid #7c4dff;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .cmd-container .select2-container--default .select2-search__field {
+            border: 1px solid #7c4dff;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .cmd-container .extra-inputs {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .cmd-container .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .cmd-container .generate-btn {
+            background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+            box-shadow: 0 4px 15px rgba(0, 82, 212, 0.3);
+        }
+        .cmd-container .generate-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(0, 82, 212, 0.5);
+        }
+        .cmd-container .copy-btn {
+            background: linear-gradient(135deg, #1E3C72, #2A5298);
+            box-shadow: 0 4px 15px rgba(42, 82, 152, 0.3);
+        }
+        .cmd-container .copy-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(42, 82, 152, 0.5);
+        }
+        .cmd-container #cmd_output {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e0e0e0;
+            font-family: 'Fira Code', monospace;
+            font-size: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            min-height: 80px;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            white-space: pre-wrap;
+            word-break: break-word;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .cmd-container #cmd_output:not(:empty) {
+            border: 2px solid #7c4dff;
+            box-shadow: 0 10px 25px rgba(124, 77, 255, 0.15);
+            font-weight: 600;
+        }
+        .cmd-container #cmd_output:active, .cmd-container #cmd_output.clicked {
+            transform: scale(0.98);
+            box-shadow: 0 5px 15px rgba(124, 77, 255, 0.2);
+        }
+        .cmd-container .alert {
+            display: none;
+            background: #16a34a;
+            color: white;
+            padding: 0.75rem;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 1rem;
+            animation: fadeIn 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tab Navigation -->
+    <div class="tab">
+        <button class="tablinks" onclick="openTab(event, 'ExcelProcessor')">Excel Processor</button>
+        <button class="tablinks" onclick="openTab(event, 'MMLAnalyzer')">MML Log Analyzer</button>
+        <button class="tablinks" onclick="openTab(event, 'CommandGenerator')">Command Generator</button>
+        <!-- Add more tab buttons here for future tools -->
+    </div>
+
+    <!-- Excel Processor Tab -->
+    <div id="ExcelProcessor" class="tabcontent">
+        <div class="container excel-container">
+            <h1 style="color: #e0e0e0;">Abnormal Sheets Analyser</h1>
+            <h1 style="color: #e0e0e0;">فريق التدخل السريع</h1>
+            <h1>O&M PROJECTS</h1>
+            <div class="workers-container">
+                <label class="filter-label">Add Workers:</label>
+                <input type="text" id="excel_workerInput" class="worker-input" placeholder="Enter worker name">
+                <button onclick="addWorker()">Add</button>
+                <div class="workers-list" id="excel_workersList"></div>
+            </div>
+            <div class="file-input-container">
+                <input type="file" id="excel_fileInput" accept=".xlsx" class="custom-file-input">
+                <label for="excel_fileInput" class="file-input-label">📁 Choose Excel File</label>
+            </div>
+            <div class="button-group">
+                <button onclick="processFile()" id="excel_processBtn">⚡ Process File</button>
+            </div>
+            <div id="excel_loading">⏳ Processing... Please wait</div>
+            <div id="excel_statisticsContainer" class="statistics-container" style="display: none;">
+                <div class="filter-container">
+                    <span class="filter-label">Filter by:</span>
+                    <select id="excel_errorFilter" class="filter-select" onchange="updateErrorFilter()">
+                        <option value="all">All Errors</option>
+                        <option value="top5">Top 5 Errors</option>
+                    </select>
+                </div>
+                <table class="statistics-table" id="excel_statsTable">
+                    <thead>
+                        <tr>
+                            <th>Error Type</th>
+                            <th>Occurrences</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+                <div class="error-rows" id="excel_errorRowsContainer"></div>
+            </div>
+            <div class="download-section">
+                <button id="excel_downloadBtn" disabled onclick="downloadResults()" class="download-button">📥 Download Results</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MML Log Analyzer Tab -->
+    <div id="MMLAnalyzer" class="tabcontent">
+        <div class="container mml-container">
+            <h1>Deep MML Log Analyzer</h1>
+            <div class="input-section">
+                <textarea id="mml_mmlInput" placeholder="Paste your MML logs here..."></textarea>
+                <button onclick="analyzeMML()">Analyze</button>
+            </div>
+            <input type="text" id="mml_searchInput" class="search-bar" placeholder="Search logs or parameters..." onkeyup="searchLogs()">
+            <div class="tab" id="mml_tabs"></div>
+            <div id="mml_tabContents"></div>
+        </div>
+    </div>
+
+    <!-- Command Generator Tab -->
+    <div id="CommandGenerator" class="tabcontent">
+        <div class="container cmd-container">
+            <h2 class="title-animation">SRV Activation Command Tool</h2>
+            <div class="search-hint">🔍 Type to search commands or select from the dropdown</div>
+            <select id="cmd_commandList" style="width: 100%;">
+                <option value="">Select a command</option>
+                <optgroup label="Huawei">
+                    <option value="Serial Number Already Exist ISSUE">Serial Number Already Exist ISSUE</option>
+                    <option value="GEM PORT ISSUE">GEM PORT ISSUE</option>
+                    <option value="Traffic Table Issue">Traffic Table Issue</option>
+                    <option value="Get Mac Address For Service Port">Get Mac Address For Service Port</option>
+                    <option value="Delete service port">Delete Service Port</option>
+                    <option value="modify line profile">Modify Line Profile</option>
+                    <option value="check ont status">Check the Status Of ONT</option>
+                    <option value="check config by phone">Check Configuration by Telephone Number</option>
+                    <option value="display service port sub">Display Service Port For Sub</option>
+                    <option value="ADSL Profile Establish">ADSL Profile Establish</option>
+                    <option value="Check Traffic Table">Check Traffic Table</option>
+                </optgroup>
+                <optgroup label="ZTE">
+                    <option value="Deletee ONU">Resource Conflict C300 Issue</option>
+                    <option value="Check ONU Info by SN">Check ONU Info by SN</option>
+                    <option value="Check Registration Sip">Check Registration Sip</option>
+                    <option value="Check Configuration for Port">Check Configuration for Port</option>
+                </optgroup>
+                <optgroup label="Nokia">
+                    <option value="Not found Inner OR Outer VLAN (case 1)">Not found Inner OR Outer VLAN (case 1)</option>
+                    <option value="Inner & Outer Vlan Used For Another Subscriber (case 2)">Inner & Outer Vlan Used For Another Subscriber (case 2)</option>
+                    <option value="Inner & Outer Vlan not connected to port by bridge (case 3)">Inner & Outer Vlan not connected to port by bridge (case 3)</option>
+                    <option value="nokia check sip registration">Check SIP Registration</option>
+                    <option value="nokia check port statistics cabinet">Check Port Statistics (Cabinet Side)</option>
+                    <option value="nokia check port statistics client">Show Port Statistics (Client Side)</option>
+                    <option value="nokia add qos commands">The value '30Mbps_3Mb ( QOS ISSUE )</option>
+                    <option value="IPTV Command">IPTV Command</option>
+                </optgroup>
+            </select>
+            <div class="extra-inputs" id="cmd_serialNumberExistInputs">
+                <input type="number" id="cmd_sn_shelf" placeholder="Enter Shelf Number" maxlength="1">
+                <input type="number" id="cmd_sn_slot" placeholder="Enter Slot Number" maxlength="2">
+                <input type="number" id="cmd_sn_port" placeholder="Enter Port Number" maxlength="2">
+                <input type="number" id="cmd_sn_ont" placeholder="Enter ONT ID" maxlength="2">
+                <input type="text" id="cmd_sn_serial" placeholder="Enter ONT Serial Number">
+            </div>
+            <div class="extra-inputs" id="cmd_gemPortInputs">
+                <input type="number" id="cmd_gem_shelf" placeholder="Enter Shelf Number" min="0" max="9">
+                <input type="number" id="cmd_gem_slot" placeholder="Enter Slot Number" min="0" max="99">
+                <input type="number" id="cmd_gem_port" placeholder="Enter Port Number" min="0" max="99">
+                <input type="number" id="cmd_gem_ont" placeholder="Enter ONT ID" min="0" max="99">
+            </div>
+            <div class="extra-inputs" id="cmd_getMacAddressInputs">
+                <input type="number" id="cmd_mac_service_port" placeholder="Enter Service Port Number">
+            </div>
+            <div class="extra-inputs" id="cmd_DeleteServicePortInputs">
+                <input type="number" id="cmd_Delete_shelf" placeholder="Enter Shelf Number">
+                <input type="number" id="cmd_Delete_slot" placeholder="Enter Slot Number">
+                <input type="number" id="cmd_Delete_port" placeholder="Enter Port Number">
+                <input type="number" id="cmd_Delete_ont" placeholder="Enter ONT ID">
+                <input type="number" id="cmd_Delete_service_port" placeholder="Enter Service Port Number">
+            </div>
+            <div class="extra-inputs" id="cmd_lineProfileInputs">
+                <input type="number" id="cmd_lp_slot" placeholder="Enter Slot ID" maxlength="2" oninput="validateInput(this)">
+                <input type="number" id="cmd_lp_port" placeholder="Enter Port">
+                <input type="number" id="cmd_lp_ont" placeholder="Enter Ont ID">
+            </div>
+            <div class="extra-inputs" id="cmd_ontStatusInputs">
+                <input type="number" id="cmd_status_shelf" placeholder="Enter Shelf ID">
+                <input type="number" id="cmd_status_slot" placeholder="Enter Slot ID">
+                <input type="number" id="cmd_status_port" placeholder="Enter Port">
+                <input type="number" id="cmd_status_ont" placeholder="Enter Ont ID">
+            </div>
+            <div class="extra-inputs" id="cmd_phoneConfigInputs">
+                <input type="number" id="cmd_phone_number" placeholder="Enter Telephone Number">
+            </div>
+            <div class="extra-inputs" id="cmd_trafficTableInputs">
+                <input type="text" id="cmd_ip_name" placeholder="Enter IP Name">
+            </div>
+            <div class="extra-inputs" id="cmd_deleteeOnuInputs">
+                <input type="text" id="cmd_deletee_onu_sn" placeholder="Enter ONU Serial Number">
+                <input type="number" id="cmd_deletee_slot" placeholder="Enter Slot Number">
+                <input type="number" id="cmd_deletee_port" placeholder="Enter Port Number">
+                <input type="number" id="cmd_deletee_onu_id" placeholder="Enter ONU ID">
+            </div>
+            <div class="extra-inputs" id="cmd_zteOnuSNInputs">
+                <input type="text" id="cmd_zte_onu_sn" placeholder="Enter ONU Serial Number">
+            </div>
+            <div class="extra-inputs" id="cmd_deleteOnuInputs">
+                <input type="text" id="cmd_delete_slot" placeholder="Enter Slot Number">
+                <input type="text" id="cmd_delete_port" placeholder="Enter Port Number">
+                <input type="text" id="cmd_delete_onu_id" placeholder="Enter ONU ID">
+            </div>
+            <div class="extra-inputs" id="cmd_sipRegistrationInputs">
+                <input type="text" id="cmd_sip_slot" placeholder="Enter Slot Number">
+            </div>
+            <div class="extra-inputs" id="cmd_portConfigInputs">
+                <input type="text" id="cmd_config_slot" placeholder="Enter Slot Number">
+                <input type="text" id="cmd_config_port" placeholder="Enter Port Number">
+            </div>
+            <div class="extra-inputs" id="cmd_servicePortSubInputs">
+                <input type="text" id="cmd_sub_shelf" placeholder="Enter Shelf Number">
+                <input type="text" id="cmd_sub_slot" placeholder="Enter Slot Number">
+                <input type="text" id="cmd_sub_port" placeholder="Enter Port Number">
+                <input type="text" id="cmd_sub_ont" placeholder="Enter ONT ID">
+            </div>
+            <div class="extra-inputs" id="cmd_nokiaVlanInputs">
+                <input type="number" id="cmd_inner_vlan" placeholder="Enter Inner VLAN ID">
+                <input type="number" id="cmd_slot_number" placeholder="Enter Slot Number">
+                <input type="number" id="cmd_port_number" placeholder="Enter Port Number">
+            </div>
+            <div class="extra-inputs" id="cmd_nokiaInnerVlanInput">
+                <input type="number" id="cmd_inner_vlan_case2" placeholder="Enter Inner VLAN ID">
+            </div>
+            <div class="extra-inputs" id="cmd_nokiaSIPRegistrationInputs">
+                <input type="number" id="cmd_nokia_shelf_number" placeholder="Enter Shelf Number">
+                <input type="number" id="cmd_nokia_slot_number" placeholder="Enter Slot Number">
+                <input type="number" id="cmd_nokia_port_number" placeholder="Enter Port Number">
+            </div>
+            <div class="extra-inputs" id="cmd_nokiaPortStatisticsCabinetInputs">
+                <input type="number" id="cmd_nokia_cabinet_shelf_number" placeholder="Enter Shelf Number (1 digit)" max="9">
+                <input type="number" id="cmd_nokia_cabinet_slot_number" placeholder="Enter Slot Number">
+                <input type="number" id="cmd_nokia_cabinet_port_number" placeholder="Enter Port Number">
+            </div>
+            <div class="button-group">
+                <button class="generate-btn" onclick="generateCommand()">Generate Command</button>
+                <button class="copy-btn" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+            <textarea id="cmd_output" readonly placeholder="Generated command will appear here..."></textarea>
+            <div class="alert" id="cmd_copyAlert">✓ Command copied to clipboard!</div>
+        </div>
+    </div>
+
+    <!-- Copyright Footer -->
+    <div class="copyright">
+        © 2025 O&M Project. All Rights Reserved.
+    </div>
+
+    <!-- Tab Switching Script -->
+    <script>
+        function openTab(evt, tabName) {
+            var i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tabcontent");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tablinks");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
+        document.getElementsByClassName("tablinks")[0].click();
+    </script>
+
+    <!-- Excel Processor Script -->
+    <script>
+        (function() {
+            let generatedWorkbook = null;
+            let allStats = {};
+            let errorRows = {};
+            let workers = [];
+            let workerErrorAssignments = {};
+
+            window.addWorker = function() {
+                const workerInput = document.getElementById('excel_workerInput');
+                const workerName = workerInput.value.trim();
+                if (workerName && !workers.includes(workerName)) {
+                    workers.push(workerName);
+                    updateWorkersList();
+                    workerInput.value = '';
+                }
+            };
+
+            function updateWorkersList() {
+                const workersList = document.getElementById('excel_workersList');
+                workersList.innerHTML = '';
+                workers.forEach(worker => {
+                    const div = document.createElement('div');
+                    div.className = 'worker-item';
+                    div.innerHTML = `<span>${worker}</span><button class="remove-worker" onclick="removeWorker('${worker}')">×</button>`;
+                    workersList.appendChild(div);
+                });
+            }
+
+            window.removeWorker = function(worker) {
+                workers = workers.filter(w => w !== worker);
+                updateWorkersList();
+            };
+
+            function extractParameters(xmlStr) {
+                const params = {
+                    'IL_REQ_GROUP': null,
+                    'LINE_1_ACTION': null,
+                    'LINE_1_PS_PARAM_RESERVATION_ID': null,
+                    'LINE_1_PS_PARAM_DN_NO': null,
+                    'LINE_1_PS_PARAM_AREA_CODE': null,
+                    'LINE_1_PS_PARAM_OPERATOR': null
+                };
+                try {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(xmlStr, "text/xml");
+                    const ns = 'http://webservices.tedata.net/MWInterface';
+                    const parameters = doc.getElementsByTagNameNS(ns, 'Parameter');
+                    for (let param of parameters) {
+                        const name = param.getAttribute('name');
+                        if (params.hasOwnProperty(name)) {
+                            params[name] = param.getAttribute('value');
+                        }
+                    }
+                } catch (e) {}
+                return params;
+            }
+
+            function processErrorMessage(errorMsg) {
+                let error = null;
+                let details = null;
+                const patterns = [
+                    { regex: /occupied by (\+\d+)/s, error: 'occupied', details: m => m[1] },
+                    { regex: /NE not reachable from AMS/s, error: '(FTTH)Reachability Issues Or Busy', details: 'Device offline' },
+                    { regex: /Input closed/s, error: '(FTTH)Reachability Issues Or Busy', details: 'Connection closed by device' },
+                    { regex: /Voice protocol does not match/s, error: 'VOICE_PROTOCOL_MISMATCH', details: '' },
+                    { regex: /The MG is already configured with user\(s\)/s, error: 'MG_ALREADY_CONFIGURED', details: 'MG has existing users' },
+                    { regex: /APC (configure|unconfigure) operation failed/s, error: 'Nokia APC', details: (m, msg) => {
+                        const causedBy = msg.match(/Caused by: (.*?)\n/s);
+                        return `APC ${m[1]} failed: ${causedBy ? causedBy[1] : 'unknown cause'}`;
+                    }},
+                    { regex: /Error Code: HIGHER_LAYER_CONFIGURED/s, error: 'HIGHER_LAYER_CONFIGURED', details: (m, msg) => {
+                        const description = msg.match(/Error Description: (.*?)\n/s);
+                        return description ? description[1] : 'no description available';
+                    }},
+                    { regex: /zhone1/s, error: 'zhone', details: 'cpe-connection' },
+                    { regex: /MISSING_IN_NE/s, error: 'MISSING_IN_NE', details: m => m.input.split('Caused by:')[-1]?.split('):Rollback')[0]?.trim() },
+                    { regex: /busy/s, error: '(FTTH)Reachability Issues Or Busy', details: 'Busy' },
+                    { regex: /DDOF.*?Description = (.*?)\):Rollback/s, error: 'Device Operation Failed', details: m => m[1] },
+                    { regex: /offline/s, error: '(FTTH)Reachability Issues Or Busy', details: 'Device offline' },
+                    { regex: /Service virtual port has existed already/s, error: 'Service virtual port has existed already', details: 'Service virtual port has existed already' },
+                    { regex: /TEMPLATE_ALREADY_CONFIGURED/s, error: 'TEMPLATE_ALREADY_CONFIGURED', details: m => m.input.split('Caused by:')[-1]?.split('):Rollback')[0]?.trim() },
+                    { regex: /GENERIC.*?The value '(.*?)'/s, error: 'Nokia', details: m => m[1] },
+                    { regex: /GENERIC.*?Serial number already exists/s, error: 'Nokia APC', details: 'Serial number already exists' },
+                    { regex: /The VLAN type does not support/s, error: 'The VLAN type does not support to create service virtual port', details: '' },
+                    { regex: /IDNE.*?the device does not exist/s, error: 'the device does not exist', details: 'the device does not exist' },
+                    { regex: /TEMPLATE_NOT_SUPPORTED_ON_PORT/s, error: 'TEMPLATE_NOT_SUPPORTED_ON_PORT', details: m => m.input.split('Caused by:')[-1]?.split('):Rollback')[0]?.trim() },
+                    { regex: /Service template 'NOT_FOUND'/s, error: 'TEMPLATE_UNKOWN', details: "Service template 'NOT_FOUND'" },
+                    { regex: /DDOF.*?\(GPON ONU sn already exists\.\)/s, error: 'device operation failed', details: 'GPON ONU sn already exists' },
+                    { regex: /IIPE/s, error: 'IIPE', details: m => {
+                        const desc = m.input.match(/Error Description = (.*?)\):Rollback/s);
+                        return desc ? desc[1] : 'no description available';
+                    }},
+                    { regex: /The serial number has already existed/s, error: 'The serial number has already existed , Conflict', details: '' },
+                    { regex: /The resource dose not exist/s, error: 'The resource dose not exist', details: '' },
+                    { regex: /IRC/s, error: 'IRC', details: 'The serial number has already existed , Conflict' },
+                    { regex: /modifying or creating a variable which does not exsit/s, error: 'modifying or creating a variable which does not exsit and cannot be created', details: '' },
+                    { regex: /The device does not exist/s, error: 'The device does not exist', details: '' },
+                    { regex: /The telephone number already exists/s, error: 'The telephone number already exists', details: '' },
+                    { regex: /TEMPLATE_MULTIPLICITY_VIOLATION/s, error: 'TEMPLATE_MULTIPLICITY_VIOLATION', details: 'Only one template of type apc.isam.ont can be configured on this port' },
+                    { regex: /LICENSE_PROBLEM/s, error: 'LICENSE_PROBLEM', details: 'LICENSE_PROBLEM' },
+                    { regex: /unvalid parameter\(s\)/s, error: 'unvalid parameter(s)', details: '' },
+                    { regex: /invalid parameter or mandatory parameter is null/s, error: 'invalid parameter or mandatory parameter is null', details: '' },
+                    { regex: /The template is not configured on this port/s, error: 'The template is not configured on this port', details: '' },
+                    { regex: /Data subscriber already exists with same ISP/s, error: 'Data subscriber already exists with same ISP', details: 'Data subscriber already exists with same ISP' },
+                    { regex: /Not found line information with PHONE_NUMBER/s, error: 'Not found line information with PHONE_NUMBER', details: 'Not found line information with PHONE_NUMBER' },
+                    { regex: /Not found line information with RESERVATION_ID/s, error: 'Not found line information with RESERVATION_ID', details: 'Not found line information with RESERVATION_ID' },
+                    { regex: /Voice subscriber already exists with same operator/s, error: 'Voice subscriber already exists with same operator', details: 'Voice subscriber already exists with same operator' },
+                    { regex: /FTTH Data Creation./s, error: 'FTTH Data Creation.', details: 'FTTH Data Creation.' },
+                    { regex: /DATA_STATUS/s, error: 'DATA_STATUS', details: 'DATA_STATUS' },
+                    { regex: /Network Element null for task/s, error: 'Network Element null', details: 'Network Element null' },
+                    { regex: /the device does not exist/s, error: 'the device does not exist', details: 'the device does not exist' },
+                    { regex: /The NE is disconnected/s, error: '(FTTH)Reachability Issues Or Busy', details: 'The NE is disconnected'},
+                    { regex: /the device does not exist/s, error: 'the device does not exist', details: 'the device does not exist' },
+                ];
+                for (const { regex, error: err, details: det } of patterns) {
+                    const match = errorMsg.match(regex);
+                    if (match) {
+                        error = err;
+                        details = typeof det === 'function' ? det(match, errorMsg) : det;
+                        break;
+                    }
+                }
+                if (!error) {
+                    const descMatch = errorMsg.match(/Error Description = (.*?)\):Rollback/s);
+                    if (descMatch) {
+                        details = descMatch[1].trim();
+                        error = details.includes(':') ? details.split(':').pop().trim() : details;
+                    } else {
+                        error = 'UNKNOWN_ERROR';
+                        details = errorMsg.slice(0, 200);
+                    }
+                }
+                return { error, details };
+            }
+
+            function extractRequestId(xmlStr) {
+                const match = xmlStr.match(/<NS1:RequestId>(\d+)<\/NS1:RequestId>/);
+                return match ? match[1] : null;
+            }
+
+            window.updateErrorFilter = function() {
+                const filterValue = document.getElementById('excel_errorFilter').value;
+                let filteredStats = { ...allStats };
+                if (filterValue === 'top5') {
+                    const sortedEntries = Object.entries(allStats).sort((a, b) => b[1] - a[1]).slice(0, 5);
+                    filteredStats = Object.fromEntries(sortedEntries);
+                } else if (filterValue !== 'all') {
+                    filteredStats = { [filterValue]: allStats[filterValue] };
+                }
+                updateStatsTable(filteredStats);
+            };
+
+            function updateStatsTable(statsData) {
+                const statsTable = document.getElementById('excel_statsTable').getElementsByTagName('tbody')[0];
+                statsTable.innerHTML = '';
+                Object.entries(statsData).forEach(([error, count]) => {
+                    const row = statsTable.insertRow();
+                    row.innerHTML = `<td>${error}</td><td class="error-count">${count}</td>`;
+                });
+            }
+
+            window.processFile = async function() {
+                const file = document.getElementById('excel_fileInput').files[0];
+                if (!file) return;
+                if (workers.length === 0) {
+                    alert("Please add at least one worker");
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    document.getElementById('excel_loading').style.display = 'block';
+                    document.getElementById('excel_processBtn').disabled = true;
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet);
+                    const tempProcessedData = jsonData.map(row => {
+                        const params = extractParameters(row.EXECUTE_CMD || '');
+                        const { error, details } = processErrorMessage(row.ERROR_NAME || '');
+                        const requestId = extractRequestId(row.RESULT_XML || '');
+                        return { ...row, ...params, ERROR: error, ERROR_DETAILS: details, RequestId: requestId };
+                    });
+                    const filteredData = tempProcessedData.filter(row => 
+                        ['02','2','082', '82', '084', '84', '086', '86', '088', '88', '93', '093', '96', '096', '97', '097', '092', '92', '095', '95'].includes(row.AREA_CODE)
+                    );
+                    const errorGroups = filteredData.reduce((acc, row) => {
+                        acc[row.ERROR] = [...(acc[row.ERROR] || []), row];
+                        return acc;
+                    }, {});
+                    const processedData = [];
+                    Object.entries(errorGroups).forEach(([error, rows]) => {
+                        let workerIndex = 0;
+                        rows.forEach(row => {
+                            row.ASSIGNED_WORKER = workers[workerIndex];
+                            processedData.push(row);
+                            workerIndex = (workerIndex + 1) % workers.length;
+                        });
+                    });
+                    const stats = {};
+                    processedData.forEach(row => {
+                        stats[row.ERROR] = (stats[row.ERROR] || 0) + 1;
+                    });
+                    allStats = stats;
+                    const errorFilter = document.getElementById('excel_errorFilter');
+                    errorFilter.innerHTML = `<option value="all">All Errors</option><option value="top5">Top 5 Errors</option>`;
+                    Object.keys(stats).forEach(error => {
+                        errorFilter.add(new Option(error, error));
+                    });
+                    updateErrorFilter();
+                    document.getElementById('excel_statisticsContainer').style.display = 'block';
+                    const wb = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(processedData), 'Filtered_Data');
+                    const worksheetCounters = {};
+                    Object.entries(errorGroups).forEach(([error, rows]) => {
+                        const baseName = error.substring(0, 31);
+                        const counter = worksheetCounters[baseName] || 1;
+                        const wsName = counter === 1 ? baseName : `${baseName}_${counter}`;
+                        worksheetCounters[baseName] = counter + 1;
+                        XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), wsName);
+                    });
+                    const statsSheet = XLSX.utils.json_to_sheet(
+                        Object.entries(stats).map(([error, count]) => ({ 'Error': error, COUNT: count }))
+                    );
+                    XLSX.utils.book_append_sheet(wb, statsSheet, 'Stats');
+                    generatedWorkbook = wb;
+                    displayErrorRows(processedData);
+                    document.getElementById('excel_downloadBtn').disabled = false;
+                    document.getElementById('excel_loading').style.display = 'none';
+                    document.getElementById('excel_processBtn').disabled = false;
+                };
+                reader.readAsArrayBuffer(file);
+            };
+
+            function displayErrorRows(data) {
+                const errorRowsContainer = document.getElementById('excel_errorRowsContainer');
+                errorRowsContainer.innerHTML = '';
+                data.forEach(row => {
+                    const errorRow = document.createElement('div');
+                    errorRow.className = 'error-row';
+                    errorRow.innerHTML = `
+                        <strong>Error:</strong> ${row.ERROR}<br>
+                        <strong>Assigned Worker:</strong> <span class="worker-assignment">${row.ASSIGNED_WORKER}</span><br>
+                        <strong>Details:</strong> ${row.ERROR_DETAILS}<br>
+                        <strong>Request ID:</strong> ${row.RequestId}<br>
+                        <strong>Area Code:</strong> ${row.LINE_1_PS_PARAM_AREA_CODE}<br>
+                        <strong>Operator:</strong> ${row.LINE_1_PS_PARAM_OPERATOR}
+                    `;
+                    const detailsDiv = document.createElement('div');
+                    detailsDiv.className = 'error-details';
+                    detailsDiv.innerHTML = `
+                        <strong>IL_REQ_GROUP:</strong> ${row.IL_REQ_GROUP}<br>
+                        <strong>LINE_1_ACTION:</strong> ${row.LINE_1_ACTION}<br>
+                        <strong>LINE_1_PS_PARAM_RESERVATION_ID:</strong> ${row.LINE_1_PS_PARAM_RESERVATION_ID}<br>
+                        <strong>LINE_1_PS_PARAM_DN_NO:</strong> ${row.LINE_1_PS_PARAM_DN_NO}<br>
+                        <strong>LINE_1_PS_PARAM_AREA_CODE:</strong> ${row.LINE_1_PS_PARAM_AREA_CODE}<br>
+                        <strong>LINE_1_PS_PARAM_OPERATOR:</strong> ${row.LINE_1_PS_PARAM_OPERATOR}
+                    `;
+                    errorRow.appendChild(detailsDiv);
+                    errorRowsContainer.appendChild(errorRow);
+                    errorRow.addEventListener('click', () => {
+                        detailsDiv.style.display = detailsDiv.style.display === 'none' ? 'block' : 'none';
+                    });
+                });
+            }
+
+            window.downloadResults = function() {
+                if (generatedWorkbook) {
+                    const fileName = 'processed_data_with_workers.xlsx';
+                    XLSX.writeFile(generatedWorkbook, fileName);
+                } else {
+                    alert("No data available for download. Please process a file first.");
+                }
+            };
+        })();
+    </script>
+
+    <!-- MML Log Analyzer Script -->
+    <script>
+        (function() {
+            window.analyzeMML = function() {
+                const input = document.getElementById('mml_mmlInput').value;
+                const logs = parseMMLLogs(input);
+                renderTabs(logs);
+            };
+
+            function parseMMLLogs(input) {
+                const logs = [];
+                const logBlocks = input.split(/\$BEGIN\$ /).slice(1);
+                logBlocks.forEach(block => {
+                    const endIndex = block.indexOf('$END$');
+                    if (endIndex === -1) return;
+                    const content = block.substring(0, endIndex).trim();
+                    const idMatch = content.match(/^(\d+_\d+)/);
+                    const id = idMatch ? idMatch[1] : 'unknown';
+                    const lines = content.split('\n');
+                    let log = {
+                        id: id,
+                        fileInfo: { localFile: '', logFile: '' },
+                        request: '',
+                        response: '',
+                        headers: {},
+                        parameters: {},
+                        errors: [],
+                        flow: [],
+                        type: 'unknown',
+                        action: '',
+                        status: '',
+                        statusMessage: '',
+                        errorCode: '',
+                        errorDescription: '',
+                        timestamp: '',
+                        rawLines: []
+                    };
+                    let currentSection = '';
+                    lines.forEach(line => {
+                        const trimmedLine = line.trim();
+                        if (trimmedLine) log.rawLines.push(trimmedLine);
+                        if (line.match(/^Local File:/)) {
+                            log.fileInfo.localFile = line.replace('Local File:', '').trim();
+                        } else if (line.match(/^File:/)) {
+                            log.fileInfo.logFile = line.replace('File:', '').trim();
+                        } else if (line.match(/^----------\s*REQUEST\s*::/)) {
+                            currentSection = 'request';
+                            log.request += line + '\n';
+                        } else if (line.match(/^---------\s*REQUEST:/)) {
+                            currentSection = 'request';
+                            log.request += line + '\n';
+                        } else if (line.match(/^SOAP Request:/)) {
+                            currentSection = 'request';
+                            log.request += line + '\n';
+                            log.type = 'soap';
+                        } else if (line.match(/^-----------\s*RESPONSE\s*::/)) {
+                            currentSection = 'response';
+                            log.response += line + '\n';
+                        } else if (line.match(/^---------\s*RESPONSE:/)) {
+                            currentSection = 'response';
+                            log.response += line + '\n';
+                        } else if (line.match(/^SOAP Response:/)) {
+                            currentSection = 'response';
+                            log.response += line + '\n';
+                            log.type = 'soap';
+                        } else if (line.match(/^Response Status ::/)) {
+                            currentSection = 'response';
+                            log.response += line + '\n';
+                            log.type = 'http';
+                        } else if (line.match(/^HTTP RESPONSE CODE ::/)) {
+                            currentSection = 'response';
+                            log.response += line + '\n';
+                        } else if (currentSection === 'request') {
+                            log.request += line + '\n';
+                        } else if (currentSection === 'response') {
+                            log.response += line + '\n';
+                        }
+                    });
+                    if (log.type === 'http') {
+                        const payloadMatch = log.request.match(/{.*}/s);
+                        if (payloadMatch) {
+                            try {
+                                const payload = JSON.parse(payloadMatch[0]);
+                                Object.assign(log.parameters, payload);
+                            } catch (e) {
+                                log.errors.push(`HTTP Payload Parsing Error: ${e.message}`);
+                            }
+                        }
+                        const jsonMatch = log.response.match(/({.*})/s);
+                        if (jsonMatch) {
+                            try {
+                                const jsonData = JSON.parse(jsonMatch[0]);
+                                Object.assign(log.parameters, jsonData.parameters || {});
+                                log.action = jsonData.action || '';
+                                log.status = jsonData.parameters?.STATUS || jsonData.result_code || log.response.match(/Response Status :: (\d+)/)?.[1] || '';
+                                log.statusMessage = jsonData.message || '';
+                                log.timestamp = jsonData.parameters?.ROWVERSION || '';
+                                if (log.action === 'SA_Get_Line_Full_Details') {
+                                    log.flow = [
+                                        `Phase 1 - Information Retrieval:`,
+                                        `Step 1: Initiated request to retrieve full details for line ${log.parameters.DN_NO || 'unknown'} in area ${log.parameters.AREA_CODE || 'unknown'}.`,
+                                        `Step 2: Sent HTTP POST to ${log.request.match(/POST (https?:\/\/[^\s]+)/)?.[1] || 'unknown endpoint'} with payload: ${payloadMatch ? payloadMatch[0] : 'N/A'}.`,
+                                        `Step 3: Database fetched configuration (e.g., MSAN: ${log.parameters.MSAN_HOSTNAME || 'N/A'}, Package: ${log.parameters.PACKAGE_NAME || 'N/A'}).`,
+                                        `Step 4: Response received with Status: ${log.status} - "${log.statusMessage}" on ${log.timestamp || 'unknown time'}.`,
+                                        `Step 5: Data ready for next steps (e.g., modify, delete).`
+                                    ];
+                                }
+                            } catch (e) {
+                                log.errors.push(`HTTP Response JSON Parsing Error: ${e.message}`);
+                            }
+                        }
+                    } else if (log.type === 'soap') {
+                        const headerMatch = log.request.match(/<S:Header>([\s\S]*?)<\/S:Header>/);
+                        if (headerMatch) {
+                            const headers = headerMatch[1].match(/<[^>]+>([^<]+)<\/[^>]+>/g) || [];
+                            headers.forEach(h => {
+                                const [, key] = h.match(/<([^:>]+:)?([^>]+)>/) || [];
+                                const value = h.match(/>([^<]+)</)?.[1];
+                                if (key && value) log.headers[key.replace(/.*:/, '')] = value;
+                            });
+                        }
+                        const paramMatch = log.request.match(/<RequestParameters>([\s\S]*?)<\/RequestParameters>/);
+                        if (paramMatch) {
+                            const paramContent = paramMatch[1];
+                            const parameterMatches = paramContent.matchAll(/<Parameter name="([^"]+)" value="([^"]+)"\/>/g);
+                            for (const match of parameterMatches) {
+                                log.parameters[match[1]] = match[2];
+                            }
+                        }
+                        log.action = log.headers.Action?.split('/').pop() || log.parameters.SO1_ACTIONCODE || 'unknown';
+                        const responseMatch = log.response.match(/<ResponseHeader>([\s\S]*?)<\/ResponseHeader>/);
+                        if (responseMatch) {
+                            const statusMatch = responseMatch[1].match(/<Status>(\d+)<\/Status>/);
+                            const requestIdMatch = responseMatch[1].match(/<RequestId>(\d+)<\/RequestId>/);
+                            const orderNoMatch = responseMatch[1].match(/<OrderNo>([^<]+)<\/OrderNo>/);
+                            const statusMsgMatch = responseMatch[1].match(/<StatusMessage>([^<]+)<\/StatusMessage>/);
+                            log.status = statusMatch ? statusMatch[1] : '';
+                            log.parameters.SOAP_REQUEST_ID = requestIdMatch ? requestIdMatch[1] : '';
+                            log.parameters.SOAP_ORDER_NO = orderNoMatch ? orderNoMatch[1] : '';
+                            log.statusMessage = statusMsgMatch ? statusMsgMatch[1] : '';
+                        }
+                        if (log.action.includes('deleteRequest') || log.parameters.SO1_ACTIONCODE === 'DELETE') {
+                            log.flow = [
+                                `Phase 2 - Service Deletion:`,
+                                `Step 1: Deletion request started for line ${log.parameters.SO1_DN_NO || 'unknown'} (Order: ${log.parameters.SOAP_ORDER_NO || 'unknown'}).`,
+                                `Step 2: SOAP request sent to ${log.headers.ReplyTo || 'network system'} with headers (e.g., MessageID: ${log.headers.MessageID || 'N/A'}).`,
+                                `Step 3: Parameters included: PORT=${log.parameters.SO1_PORT || 'N/A'}, MSAN_IP=${log.parameters.SO1_MSAN_IP || 'N/A'}.`,
+                                `Step 4: Assigned Request ID: ${log.parameters.SOAP_REQUEST_ID || 'unknown'}.`,
+                                `Step 5: Response Status: ${log.status || 'unknown'} - "${log.statusMessage || 'no message'}".`,
+                                `Step 6: Deletion request accepted; awaiting downstream action.`
+                            ];
+                        } else if (log.action.includes('modifyRequest') || log.parameters.SO1_ACTIONCODE === 'RESUME') {
+                            log.flow = [
+                                `Phase 2 - Service Modification:`,
+                                `Step 1: Modification request (${log.parameters.SO1_ACTIONCODE || 'unknown'}) started for line ${log.parameters.SO1_DN_NO || 'unknown'} (Order: ${log.parameters.SOAP_ORDER_NO || 'unknown'}).`,
+                                `Step 2: SOAP request sent to ${log.headers.ReplyTo || 'network system'} with headers (e.g., MessageID: ${log.headers.MessageID || 'N/A'}).`,
+                                `Step 3: Parameters included: PORT=${log.parameters.SO1_PORT || 'N/A'}, Package: ${log.parameters.SO1_PACKAGE_NAME || 'N/A'}.`,
+                                `Step 4: Assigned Request ID: ${log.parameters.SOAP_REQUEST_ID || 'unknown'}.`,
+                                `Step 5: Response Status: ${log.status || 'unknown'} - "${log.statusMessage || 'no message'}".`,
+                                `Step 6: Modification accepted; awaiting downstream updates.`
+                            ];
+                        }
+                    } else {
+                        const cmdMatch = log.request.match(/^(DEL|CRT)-SERVICEPORT::DEV=([^,]+),FN=(\d+),SN=(\d+),PN=(\d+):([^:]+)::([^;]+)/);
+                        if (cmdMatch) {
+                            log.type = 'mml';
+                            log.parameters.DEVICE_IP = cmdMatch[2];
+                            log.parameters.FRAME_NO = cmdMatch[3];
+                            log.parameters.SLOT_NO = cmdMatch[4];
+                            log.parameters.PORT_NO = cmdMatch[5];
+                            log.parameters.TASK_ID = cmdMatch[6];
+                            const paramString = cmdMatch[7];
+                            const params = paramString.split(',');
+                            params.forEach(p => {
+                                const [key, value] = p.split('=');
+                                if (key && value) log.parameters[key] = value;
+                            });
+                            log.action = cmdMatch[1] === 'DEL' ? 'Delete Service Port' : 'Create Service Port';
+                        }
+                        const respLines = log.response.split('\n').filter(line => line.trim());
+                        respLines.forEach(line => {
+                            const tsMatch = line.match(/(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/);
+                            if (tsMatch) log.timestamp = tsMatch[1];
+                            const statusMatch = line.match(/M\s+(\S+)\s+COMPLD/);
+                            if (statusMatch) log.status = 'Completed';
+                            const errMatch = line.match(/EN=(\d+)\s+ENDESC=([^;]+)/);
+                            if (errMatch) {
+                                log.errorCode = errMatch[1];
+                                log.errorDescription = errMatch[2];
+                                log.statusMessage = errMatch[2];
+                                log.errors.push(`${log.timestamp || 'Unknown time'}: Error Code ${errMatch[1]} - ${errMatch[2]}`);
+                            }
+                        });
+                        if (log.action === 'Delete Service Port') {
+                            log.flow = [
+                                `Phase 3 - Downstream Equipment Update:`,
+                                `Step 1: Issued command to delete service port on device ${log.parameters.DEVICE_IP || 'unknown'} (Frame=${log.parameters.FRAME_NO}, Slot=${log.parameters.SLOT_NO}, Port=${log.parameters.PORT_NO}).`,
+                                `Step 2: Specified parameters: ${Object.entries(log.parameters).filter(([k]) => k !== 'DEVICE_IP' && k !== 'FRAME_NO' && k !== 'SLOT_NO' && k !== 'PORT_NO' && k !== 'TASK_ID').map(([k, v]) => `${k}=${v}`).join(', ') || 'N/A'}.`,
+                                `Step 3: Executed at ${log.timestamp || 'unknown time'}.`,
+                                `Step 4: Result: ${log.status || 'unknown'} - "${log.statusMessage || 'no message'}".`,
+                                log.errors.length > 0 ? `Step 5: Encountered issues (Error Code: ${log.errorCode}, Description: ${log.errorDescription}).` : `Step 5: Deletion completed successfully.`
+                            ];
+                        } else if (log.action === 'Create Service Port') {
+                            log.flow = [
+                                `Phase 3 - Downstream Equipment Update:`,
+                                `Step 1: Issued command to create service port on device ${log.parameters.DEVICE_IP || 'unknown'} (Frame=${log.parameters.FRAME_NO}, Slot=${log.parameters.SLOT_NO}, Port=${log.parameters.PORT_NO}).`,
+                                `Step 2: Specified parameters: ${Object.entries(log.parameters).filter(([k]) => k !== 'DEVICE_IP' && k !== 'FRAME_NO' && k !== 'SLOT_NO' && k !== 'PORT_NO' && k !== 'TASK_ID').map(([k, v]) => `${k}=${v}`).join(', ') || 'N/A'}.`,
+                                `Step 3: Executed at ${log.timestamp || 'unknown time'}.`,
+                                `Step 4: Result: ${log.status || 'unknown'} - "${log.statusMessage || 'no message'}".`,
+                                log.errors.length > 0 ? `Step 5: Creation failed (Error Code: ${log.errorCode}, Description: ${log.errorDescription}).` : `Step 5: Creation completed successfully.`
+                            ];
+                        }
+                    }
+                    logs.push(log);
+                });
+                return logs;
+            }
+
+            function renderTabs(logs) {
+                const tabsContainer = document.getElementById('mml_tabs');
+                const contentsContainer = document.getElementById('mml_tabContents');
+                tabsContainer.innerHTML = '';
+                contentsContainer.innerHTML = '';
+                logs.forEach((log, index) => {
+                    const tabButton = document.createElement('button');
+                    tabButton.textContent = `${log.id} (${log.type.toUpperCase()})`;
+                    tabButton.className = 'tablinks';
+                    tabButton.onclick = () => openLogTab(log.id);
+                    tabsContainer.appendChild(tabButton);
+                    const tabContent = document.createElement('div');
+                    tabContent.id = log.id;
+                    tabContent.className = 'tabcontent';
+                    let contentHTML = `<h2>${log.id} (${log.type.toUpperCase()})</h2>`;
+                    if (log.fileInfo.localFile || log.fileInfo.logFile) {
+                        contentHTML += `<details open><summary>File Information</summary>`;
+                        contentHTML += `<pre>Local File: ${log.fileInfo.localFile || 'N/A'}\nLog File: ${log.fileInfo.logFile || 'N/A'}</pre>`;
+                        contentHTML += `</details>`;
+                    }
+                    if (log.rawLines.length > 0) {
+                        contentHTML += `<details open><summary>All Raw Lines (${log.rawLines.length}) <button class="copy-btn" onclick="copyToClipboard(this.parentElement.nextElementSibling.textContent)">Copy</button></summary><div class="raw-lines">`;
+                        log.rawLines.forEach(line => {
+                            contentHTML += `<div>${line}</div>`;
+                        });
+                        contentHTML += `</div></details>`;
+                    }
+                    if (log.request) {
+                        contentHTML += `<details open><summary>Request <button class="copy-btn" onclick="copyToClipboard(this.parentElement.nextElementSibling.textContent)">Copy</button></summary><pre>${log.request.trim()}</pre></details>`;
+                    }
+                    if (log.response) {
+                        contentHTML += `<details open><summary>Response <button class="copy-btn" onclick="copyToClipboard(this.parentElement.nextElementSibling.textContent)">Copy</button></summary><pre>${log.response.trim()}</pre></details>`;
+                    }
+                    if (Object.keys(log.headers).length > 0) {
+                        contentHTML += `<details open><summary>SOAP Headers (${Object.keys(log.headers).length})</summary><table class="param-table">`;
+                        contentHTML += `<tr><th>Header</th><th>Value</th></tr>`;
+                        for (const [key, value] of Object.entries(log.headers)) {
+                            contentHTML += `<tr><td>${key}</td><td>${value}</td></tr>`;
+                        }
+                        contentHTML += `</table></details>`;
+                    }
+                    if (log.action || log.status || log.statusMessage || log.errorCode || log.errorDescription || log.timestamp) {
+                        contentHTML += `<details open><summary>Action & Status</summary>`;
+                        contentHTML += `<div><span class="param-key">Action:</span> ${log.action || 'N/A'}</div>`;
+                        contentHTML += `<div><span class="param-key">Status:</span> <span style="color: ${log.status === 'Success' ? '#2e7d32' : log.status === 'Failed' ? '#d32f2f' : '#e0e0e0'}">${log.status || 'N/A'}</span></div>`;
+                        contentHTML += `<div><span class="param-key">Status Message:</span> ${log.statusMessage || 'N/A'}</div>`;
+                        contentHTML += `<div><span class="param-key">Error Code (EN):</span> ${log.errorCode || 'N/A'}</div>`;
+                        contentHTML += `<div><span class="param-key">Error Description (ENDESC):</span> ${log.errorDescription || 'N/A'}</div>`;
+                        contentHTML += `<div><span class="param-key">Timestamp:</span> ${log.timestamp || 'N/A'}</div>`;
+                        contentHTML += `</details>`;
+                    }
+                    if (Object.keys(log.parameters).length > 0) {
+                        contentHTML += `<details open><summary>Parameters (${Object.keys(log.parameters).length})</summary><table class="param-table">`;
+                        contentHTML += `<tr><th onclick="sortTable(0)">Parameter</th><th onclick="sortTable(1)">Value</th></tr>`;
+                        for (const [key, value] of Object.entries(log.parameters)) {
+                            contentHTML += `<tr><td>${key}</td><td>${value}</td></tr>`;
+                        }
+                        contentHTML += `</table></details>`;
+                    }
+                    if (log.errors.length > 0) {
+                        contentHTML += `<details open><summary>Errors (${log.errors.length})</summary><div class="error-list">`;
+                        log.errors.forEach(error => {
+                            contentHTML += `<div>${error}</div>`;
+                        });
+                        contentHTML += `</div></details>`;
+                    }
+                    if (log.flow.length > 0) {
+                        contentHTML += `<details open><summary>Flow Explanation</summary><ul class="flow-explanation">`;
+                        log.flow.forEach(step => {
+                            contentHTML += `<li>${step}</li>`;
+                        });
+                        contentHTML += `</ul></details>`;
+                    }
+                    tabContent.innerHTML = contentHTML;
+                    contentsContainer.appendChild(tabContent);
+                    if (index === 0) {
+                        tabButton.classList.add('active');
+                        tabContent.classList.add('active');
+                    }
+                });
+            }
+
+            function openLogTab(tabId) {
+                const tabContents = document.getElementById('mml_tabContents').getElementsByClassName('tabcontent');
+                const tabLinks = document.getElementById('mml_tabs').getElementsByClassName('tablinks');
+                for (let i = 0; i < tabContents.length; i++) {
+                    tabContents[i].classList.remove('active');
+                }
+                for (let i = 0; i < tabLinks.length; i++) {
+                    tabLinks[i].classList.remove('active');
+                }
+                document.getElementById(tabId).classList.add('active');
+                const activeButton = Array.from(tabLinks).find(btn => btn.textContent.startsWith(tabId));
+                if (activeButton) activeButton.classList.add('active');
+            }
+
+            window.copyToClipboard = function(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Copied to clipboard');
+                }).catch(err => {
+                    console.error('Failed to copy: ', err);
+                });
+            };
+
+            function sortTable(n) {
+                const table = event.target.closest('table');
+                let rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+                switching = true;
+                dir = "asc";
+                while (switching) {
+                    switching = false;
+                    rows = table.rows;
+                    for (i = 1; i < (rows.length - 1); i++) {
+                        shouldSwitch = false;
+                        x = rows[i].getElementsByTagName("TD")[n];
+                        y = rows[i + 1].getElementsByTagName("TD")[n];
+                        if (dir === "asc") {
+                            if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        } else if (dir === "desc") {
+                            if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                                shouldSwitch = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (shouldSwitch) {
+                        rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                        switching = true;
+                        switchcount++;
+                    } else {
+                        if (switchcount === 0 && dir === "asc") {
+                            dir = "desc";
+                            switching = true;
+                        }
+                    }
+                }
+            }
+
+            window.searchLogs = function() {
+                const input = document.getElementById('mml_searchInput').value.toLowerCase();
+                const tabs = document.querySelectorAll('#mml_tabContents .tabcontent');
+                tabs.forEach(tab => {
+                    const text = tab.textContent.toLowerCase();
+                    tab.style.display = text.includes(input) ? 'block' : 'none';
+                });
+            };
+        })();
+    </script>
+
+    <!-- Command Generator Script -->
+    <script>
+        (function() {
+            $(document).ready(function() {
+                $('#cmd_commandList').select2({
+                    placeholder: "Search or select a command...",
+                    allowClear: true,
+                    width: '100%'
+                });
+                $('#cmd_commandList').on('change', function() {
+                    $('.cmd-container .extra-inputs').hide();
+                    const selectedValue = this.value;
+                    if (selectedValue === 'modify line profile') {
+                        $('#cmd_lineProfileInputs').show();
+                    } else if (selectedValue === 'GEM PORT ISSUE') {
+                        $('#cmd_gemPortInputs').show();
+                    } else if (selectedValue === 'Serial Number Already Exist ISSUE') {
+                        $('#cmd_serialNumberExistInputs').show();
+                    } else if (selectedValue === 'check ont status') {
+                        $('#cmd_ontStatusInputs').show();
+                    } else if (selectedValue === 'check config by phone') {
+                        $('#cmd_phoneConfigInputs').show();
+                    } else if (selectedValue === 'display service port sub') {
+                        $('#cmd_servicePortSubInputs').show();
+                    } else if (selectedValue === 'Check Traffic Table') {
+                        $('#cmd_trafficTableInputs').show();
+                    } else if (selectedValue === 'Delete service port') {
+                        $('#cmd_DeleteServicePortInputs').show();
+                    } else if (selectedValue === 'Get Mac Address For Service Port') {
+                        $('#cmd_getMacAddressInputs').show();
+                    } else if (selectedValue === 'Check ONU Info by SN') {
+                        $('#cmd_zteOnuSNInputs').show();
+                    } else if (selectedValue === 'Delete ONU') {
+                        $('#cmd_deleteOnuInputs').show();
+                    } else if (selectedValue === 'Check Registration Sip') {
+                        $('#cmd_sipRegistrationInputs').show();
+                    } else if (selectedValue === 'Check Configuration for Port') {
+                        $('#cmd_portConfigInputs').show();
+                    } else if (selectedValue === 'Deletee ONU') {
+                        $('#cmd_deleteeOnuInputs').show();
+                    } else if (selectedValue === 'nokia check sip registration') {
+                        $('#cmd_nokiaSIPRegistrationInputs').show();
+                    } else if (selectedValue === 'Not found Inner OR Outer VLAN (case 1)' || selectedValue === 'Inner & Outer Vlan not connected to port by bridge (case 3)') {
+                        $('#cmd_nokiaVlanInputs').show();
+                    } else if (selectedValue === 'Inner & Outer Vlan Used For Another Subscriber (case 2)') {
+                        $('#cmd_nokiaInnerVlanInput').show();
+                    } else if (selectedValue === 'nokia check port statistics cabinet') {
+                        $('#cmd_nokiaPortStatisticsCabinetInputs').show();
+                    }
+                });
+                $('.cmd-container .extra-inputs input').on('keypress', function(e) {
+                    if (e.which === 13) {
+                        generateCommand();
+                    }
+                });
+            });
+
+            window.generateCommand = function() {
+                let command = document.getElementById("cmd_commandList").value;
+                let output = "";
+                switch(command) {
+                    case "GEM PORT ISSUE":
+                        let gem_shelf = document.getElementById("cmd_gem_shelf").value;
+                        let gem_slot = document.getElementById("cmd_gem_slot").value;
+                        let gem_port = document.getElementById("cmd_gem_port").value;
+                        let gem_ont = document.getElementById("cmd_gem_ont").value;
+                        if (gem_shelf && gem_slot && gem_port && gem_ont) {
+                            output = 'enable\n' +
+                                `config\n` +
+                                `display current-configuration ont ${gem_shelf}/${gem_slot}/${gem_port} ${gem_ont}\n \n` +
+                                `display service-port port ${gem_shelf}/${gem_slot}/${gem_port} ont ${gem_ont}\n\n` +
+                                `interface gpon  ${gem_shelf}/${gem_slot}\n\n` +
+                                `undo service-port "service port number"\n\n` +
+                                `ont modify ${gem_port} ${gem_ont} ont-lineprofile-name FTTH\n\n` +
+                                `service-port "service port number" vlan 943 gpon ${gem_shelf}/${gem_slot}/${gem_port} ont ${gem_ont} gemport 2 multi-service user-vlan 943 tag-transform translate inbound traffic-table index "Enter Traffic Table Index"\n\n` +
+                                `quit\n\n` +
+                                `display current-configuration ont ${gem_shelf}/${gem_slot}/${gem_port} ${gem_ont}\n`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "Serial Number Already Exist ISSUE":
+                        let sn_shelf = document.getElementById("cmd_sn_shelf").value;
+                        let sn_slot = document.getElementById("cmd_sn_slot").value;
+                        let sn_port = document.getElementById("cmd_sn_port").value;
+                        let sn_ont = document.getElementById("cmd_sn_ont").value;
+                        let sn_serial = document.getElementById("cmd_sn_serial").value;
+                        if (sn_shelf && sn_slot && sn_port && sn_ont && sn_serial) {
+                            output = 'enable\n' +
+                                `config\n` +
+                                `display ont info by-sn ${sn_serial}\n\n` +
+                                `display current-configuration ont ${sn_shelf}/${sn_slot}/${sn_port} ${sn_ont}\n\n` +
+                                `display service-port port ${sn_shelf}/${sn_slot}/${sn_port} ont ${sn_ont}\n\n` +
+                                `interface gpon  ${sn_shelf}/${sn_slot}\n\n` +
+                                `display sippstnuser  attribute  ${sn_port}  ${sn_ont}\n\n` +
+                                `undo service-port "Enter Service Port Number"\n\n` +
+                                `ont delete ${sn_port} ${sn_ont}\n\n` +
+                                `quit\n` +
+                                `display ont info by-sn ${sn_serial}\n\n`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "Traffic Table Issue":
+                        output = 'enable\n' +
+                            `config \n\n
+'Traffic table ip name HSI_3M cir 3072 pir 3072 priority 0 priority-policy local-Setting
+Traffic table ip  name HSI_7M cir 7168 pir 7168 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_10M cir 10240 pir 10240 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_20M cir 20480 pir 20480 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_30M cir 30720 pir 30720 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_70M cir 71680 pir 71680 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_100M cir 102400 pir 102400 priority 0 priority-policy local-setting
+Traffic table ip  name HSI_200M cir 204800 pir 204800 priority 0 priority-policy local-setting
+traffic table ip name HSI_500M cir 512000 cbs 16386000 pir 512000 pbs 16386000  priority 0 priority-policy local-setting
+traffic table ip name 500M cir 512000 pir 512000 color-mode color-blind priority 0 priority-policy local-Setting
+traffic table ip name 50M cir 51200 pir 51200 color-mode color-blind priority 0 priority-policy local-Setting
+Traffic table ip  name VOIP cir off priority 5 priority-policy local-setting
+Traffic table ip  name ONT_MGT cir off priority 6 priority-policy local-setting
+Traffic table ip name IPTV cir 15360 pir 61440 priority 4 priority-policy local-setting
+Traffic table ip  name IPTV_UP cir off priority 4 priority-policy local-setting`;
+                        break;
+                    case "Get Mac Address For Service Port":
+                        let mac_service_port = document.getElementById("cmd_mac_service_port").value;
+                        if (mac_service_port) {
+                            output = `display mac-address service-port   ${mac_service_port}`;
+                        } else {
+                            output = "Please enter Service Port Number.";
+                        }
+                        break;
+                    case "modify line profile":
+                        let lp_slot = document.getElementById("cmd_lp_slot").value;
+                        let lp_port = document.getElementById("cmd_lp_port").value;
+                        let lp_ont = document.getElementById("cmd_lp_ont").value;
+                        if (lp_slot && lp_port && lp_ont) {
+                            output = `config\ninterface gpon 0/${lp_slot}\n\n ont modify ${lp_port} ${lp_ont} ont-lineprofile-id 10`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "check ont status":
+                        let status_shelf = document.getElementById("cmd_status_shelf").value;
+                        let status_slot = document.getElementById("cmd_status_slot").value;
+                        let status_port = document.getElementById("cmd_status_port").value;
+                        let status_ont = document.getElementById("cmd_status_ont").value;
+                        if (status_shelf && status_slot && status_port && status_ont) {
+                            output = `config\ninterface gpon 0/${status_slot}\ndisplay sippstnuser attribute ${status_port} ${status_ont}`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "check config by phone":
+                        let phone = document.getElementById("cmd_phone_number").value;
+                        if (phone) {
+                            output = `config\ndisplay current-configuration | include ${phone}`;
+                        } else {
+                            output = "Please enter Telephone Number.";
+                        }
+                        break;
+                    case "display service port sub":
+                        let sub_shelf = document.getElementById("cmd_sub_shelf").value;
+                        let sub_slot = document.getElementById("cmd_sub_slot").value;
+                        let sub_port = document.getElementById("cmd_sub_port").value;
+                        let sub_ont = document.getElementById("cmd_sub_ont").value;
+                        if (sub_shelf && sub_slot && sub_port && sub_ont) {
+                            output = `display service-port port ${sub_shelf}/${sub_slot}/${sub_port} ont ${sub_ont}`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "ADSL Profile Establish":
+                        output = `config\nxdsl line-spectrum-profile quickAdd 2 allow-transitions-to-idle 2 allow-transitions-to-lowpower 2 reference-clock freeRun cyclic-extension-flag 1 force-inp-ds 1 force-inp-us 1 desc VDSL17A`;
+                        break;
+                    case "Check Traffic Table":
+                        let ipName = document.getElementById("cmd_ip_name").value;
+                        if (ipName) {
+                            output = `config\ndisplay traffic table ip name ${ipName}`;
+                        } else {
+                            output = "Please enter IP Name.";
+                        }
+                        break;
+                    case "Delete service port":
+                        let Delete_shelf = document.getElementById("cmd_Delete_shelf").value;
+                        let Delete_slot = document.getElementById("cmd_Delete_slot").value;
+                        let Delete_port = document.getElementById("cmd_Delete_port").value;
+                        let Delete_ont = document.getElementById("cmd_Delete_ont").value;
+                        let Delete_service_port = document.getElementById("cmd_Delete_service_port").value;
+                        if (Delete_shelf && Delete_slot && Delete_port && Delete_ont && Delete_service_port) {
+                            output = `config\ndisplay service-port port ${Delete_shelf}/${Delete_slot}/${Delete_port} ont ${Delete_ont}\nundo service-port ${Delete_service_port}\ndisplay service-port port ${Delete_shelf}/${Delete_slot}/${Delete_port} ont ${Delete_ont}`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "Check ONU Info by SN":
+                        let zteSN = document.getElementById("cmd_zte_onu_sn").value;
+                        if (zteSN) {
+                            if (zteSN.startsWith('48')) {
+                                zteSN = 'HWTC' + zteSN.substring(8);
+                            } else if (zteSN.startsWith('5A')) {
+                                zteSN = 'ZTEG' + zteSN.substring(8);
+                            }
+                            output = `show gpon onu by sn ${zteSN}`;
+                        } else {
+                            output = "Please enter ONU Serial Number.";
+                        }
+                        break;
+                    case "Delete ONU":
+                        let delete_slot = document.getElementById("cmd_delete_slot").value;
+                        let delete_port = document.getElementById("cmd_delete_port").value;
+                        let delete_onu_id = document.getElementById("cmd_delete_onu_id").value;
+                        if (delete_slot && delete_port && delete_onu_id) {
+                            output = `config t\ninterface gpon_olt-${delete_slot}/${delete_port}/${delete_onu_id}\nno onu ${delete_onu_id}`;
+                        } else {
+                            output = "Please enter Slot Number, Port Number, and ONU ID.";
+                        }
+                        break;
+                    case "Check Registration Sip":
+                        let sip_slot = document.getElementById("cmd_sip_slot").value;
+                        if (sip_slot) {
+                            output = `show msag sip user ${sip_slot}`;
+                        } else {
+                            output = "Please enter Slot Number.";
+                        }
+                        break;
+                    case "Check Configuration for Port":
+                        let config_slot = document.getElementById("cmd_config_slot").value;
+                        let config_port = document.getElementById("cmd_config_port").value;
+                        if (config_slot && config_port) {
+                            output = `show running-config interface vdsl_1/${config_slot}/${config_port}`;
+                        } else {
+                            output = "Please enter Slot Number and Port Number.";
+                        }
+                        break;
+                    case "Deletee ONU":
+                        let deletee_onu_sn = document.getElementById("cmd_deletee_onu_sn").value;
+                        let deletee_slot = document.getElementById("cmd_deletee_slot").value;
+                        let deletee_port = document.getElementById("cmd_deletee_port").value;
+                        let deletee_onu_id = document.getElementById("cmd_deletee_onu_id").value;
+                        if (deletee_onu_sn && deletee_slot && deletee_port && deletee_onu_id) {
+                            if (deletee_onu_sn.startsWith('48')) {
+                                deletee_onu_sn = 'HWTC' + deletee_onu_sn.substring(8);
+                            } else if (deletee_onu_sn.startsWith('5A')) {
+                                deletee_onu_sn = 'ZTEG' + deletee_onu_sn.substring(8);
+                            }
+                            output = `config t\nshow gpon onu by sn ${deletee_onu_sn}\ninterface gpon_olt-${deletee_slot}/${deletee_port}/${deletee_onu_id}\nno onu ${deletee_onu_id}\nExit\nshow gpon onu by sn ${deletee_onu_sn}`;
+                        } else {
+                            output = "Please enter all required values.";
+                        }
+                        break;
+                    case "Not found Inner OR Outer VLAN (case 1)":
+                    case "Inner & Outer Vlan not connected to port by bridge (case 3)":
+                        let inner_vlan = document.getElementById("cmd_inner_vlan").value;
+                        let slot_number = document.getElementById("cmd_slot_number").value;
+                        let port_number = document.getElementById("cmd_port_number").value;
+                        if (inner_vlan && slot_number && port_number) {
+                            output = `configure xdsl line 1/1/${slot_number}/${port_number} no service-profile no spectrum-profile no rtx-profile no transfer-mode no auto-switch no admin-up
+sleep 1
+configure xdsl line 1/1/${slot_number}/${port_number} service-profile 12 spectrum-profile 1 transfer-mode atm
+configure atm pvc 1/1/${slot_number}/${port_number}:0:35
+configure bridge port 1/1/${slot_number}/${port_number}:0:35 max-unicast-mac 4
+configure bridge port 1/1/${slot_number}/${port_number}:0:35 vlan-id   ${inner_vlan}   vlan-scope local network-vlan stacked:480:${inner_vlan}
+configure bridge port 1/1/${slot_number}/${port_number}:0:35 pvid stacked:480:${inner_vlan}
+configure xdsl line 1/1/${slot_number}/${port_number} auto-switch admin-up
+configure xdsl line 1/1/${slot_number}/${port_number} no admin-up
+sleep 3
+configure xdsl line 1/1/${slot_number}/${port_number} service-profile 12 spectrum-profile 4 no rtx-profile transfer-mode ptm
+configure bridge port 1/1/${slot_number}/${port_number} max-unicast-mac 4
+configure bridge port 1/1/${slot_number}/${port_number} vlan-id   ${inner_vlan}   vlan-scope local network-vlan stacked:480:${inner_vlan}
+configure bridge port 1/1/${slot_number}/${port_number} pvid stacked:480:${inner_vlan}
+configure xdsl line 1/1/${slot_number}/${port_number} admin-up
+exit all
+# SHOW Last Config
+info configure xdsl line 1/1/${slot_number}/${port_number}
+show xdsl operational-data line 1/1/${slot_number}/${port_number}
+exit all`;
+                        } else {
+                            output = "Please enter Inner VLAN ID, Slot Number, and Port Number.";
+                        }
+                        break;
+                    case "Inner & Outer Vlan Used For Another Subscriber (case 2)":
+                        let inner_vlan_case2 = document.getElementById("cmd_inner_vlan_case2").value;
+                        if (inner_vlan_case2) {
+                            output = `info configure bridge port flat | match   exact:480:${inner_vlan_case2}`;
+                        } else {
+                            output = "Please enter Inner VLAN ID.";
+                        }
+                        break;
+                    case "nokia check sip registration":
+                        let nokia_shelf_number = document.getElementById("cmd_nokia_shelf_number").value;
+                        let nokia_slot_number = document.getElementById("cmd_nokia_slot_number").value;
+                        let nokia_port_number = document.getElementById("cmd_nokia_port_number").value;
+                        if (nokia_shelf_number && nokia_slot_number && nokia_port_number) {
+                            output = `show voice sip termination 1/${nokia_shelf_number}/${nokia_slot_number}/14`;
+                        } else {
+                            output = "Please enter Shelf Number, Slot Number, and Port Number.";
+                        }
+                        break;
+                    case "nokia check port statistics cabinet":
+                        let nokia_cabinet_shelf_number = document.getElementById("cmd_nokia_cabinet_shelf_number").value;
+                        let nokia_cabinet_slot_number = document.getElementById("cmd_nokia_cabinet_slot_number").value;
+                        let nokia_cabinet_port_number = document.getElementById("cmd_nokia_cabinet_port_number").value;
+                        if (nokia_cabinet_shelf_number && nokia_cabinet_slot_number && nokia_cabinet_port_number) {
+                            output = `show xdsl operational-data far-end line 1/${nokia_cabinet_shelf_number}/${nokia_cabinet_slot_number}/${nokia_cabinet_port_number}`;
+                        } else {
+                            output = "Please enter Shelf Number, Slot Number, and Port Number.";
+                        }
+                        break;
+                    case "IPTV Command":
+                        output = "configure vlan id 301 mode residential-bridge name IPTV new-broadcast enable in-qos-prof-name name:Default_TC5\n#configure vlan id 301 dhcp-opt82-ext enable circuit-id-dhcp physical-id remote-id-dhcp customer-id";
+                        break;
+                    case "nokia check port statistics client":
+                        output = "show xdsl operational-data near-end line";
+                        break;
+                    case "nokia add qos commands":
+                        output = [
+                            "configure qos profiles policer 3Mbps committed-info-rate 3072 committed-burst-size 256000",
+                            "configure qos profiles policer 7Mbps committed-info-rate 7168 committed-burst-size 256000",
+                            "configure qos profiles policer 20Mbps committed-info-rate 20480 committed-burst-size 256000",
+                            "configure qos profiles policer 30Mbps committed-info-rate 30720 committed-burst-size 256000",
+                            "configure qos profiles policer 70Mbps committed-info-rate 71680 committed-burst-size 256000",
+                            "configure qos profiles session 30Mbps_3Mbps logical-flow-type generic up-policer name:3Mbps down-policer name:30Mbps",
+                            "configure qos profiles session 70Mbps_7Mbps logical-flow-type generic up-policer name:7Mbps down-policer name:70Mbps",
+                            "configure qos profiles session 100Mbps_10Mbps logical-flow-type generic up-policer name:10Mbps down-policer name:100Mbps",
+                            "configure qos profiles session 200Mbps_20Mbps logical-flow-type generic up-policer name:20Mbps down-policer name:200Mbps",
+                            "configure qos profiles aggrqueues config DefaultDnQueuesConfig q0-priority 6 q1-priority 6 q2-priority 7 q3-priority 8 q0-weight 36 q1-weight 64 q2-weight 0 q3-weight 0 q4-weight 0 q5-weight 0 q6-weight 0 q7-weight 0 q0-queue-prof name:NGLT_Default q1-queue-prof name:NGLT_Default q2-queue-prof name:NGLT_Default q3-queue-prof name:NGLT_Default",
+                            "configure qos profiles bandwidth IPTV committed-info-rate 0 assured-info-rate 1024 excessive-info-rate 1024 delay-tolerance 80",
+                            "configure qos profiles session 30Mbps_3Mbps logical-flow-type generic up-policer name:3Mbps down-policer name:30Mbps"
+                        ].join('\n');
+                        break;
+                }
+                if (Array.isArray(output)) {
+                    output = output.join('\n');
+                }
+                document.getElementById("cmd_output").value = output;
+            };
+
+            window.copyToClipboard = function() {
+                let copyText = document.getElementById("cmd_output");
+                copyText.select();
+                document.execCommand("copy");
+                let alert = document.getElementById("cmd_copyAlert");
+                alert.style.display = "block";
+                setTimeout(() => {
+                    alert.style.display = "none";
+                }, 2000);
+            };
+
+            window.validateInput = function(input) {
+                input.value = input.value.replace(/\D/g, '').slice(0, 2);
+            };
+        })();
+    </script>
+</body>
+</html>
